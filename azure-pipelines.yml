@@ -1,0 +1,37 @@
+trigger:
+- main
+
+pool:
+  name: Default  # Replace with 'vmImage: ubuntu-latest' if self-hosted fails
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
+  displayName: 'Restore NuGet packages'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+  displayName: 'Build project'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    publishWebProjects: true
+  displayName: 'Publish artifact'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'webapp'
+    publishLocation: 'Container'
+  displayName: 'Publish artifact package'
